@@ -4,7 +4,7 @@ description:
 author: zhang
 date: 2025-12-05 11:33:00 +0800
 categories: [MySQL, MySQL是怎样运行的 - 笔记]
-tags: [MySQL, Reading Notes]
+tags: [MySQL, 学习笔记]
 pin: false
 math: true
 mermaid: true
