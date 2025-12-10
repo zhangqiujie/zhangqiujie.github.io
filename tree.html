@@ -3,7 +3,13 @@ layout: page
 title: Categories
 ---
 
-
+<div id="tree-root"></div>
+<script src="/assets/js/dist/react-tree.min.js"></script>
+<script>
+fetch('/assets/category_tree.json')
+  .then(res => res.json())
+  .then(data => window.renderTree('tree-root', data));
+</script>
 <div id="tree1"></div>
 
 <!-- 引入 jQuery、jqTree 和 Font Awesome -->
