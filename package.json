@@ -15,6 +15,7 @@
   "homepage": "https://github.com/cotes2020/jekyll-theme-chirpy/",
   "type": "module",
   "scripts": {
+    "pack": "webpack --config webpack.config.js --mode production",
     "build": "concurrently npm:build:*",
     "build:css": "node purgecss.js",
     "build:js": "rollup -c --bundleConfigAsCjs --environment BUILD:production",
@@ -27,13 +28,19 @@
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
-    "bootstrap": "^5.3.8"
+    "antd": "^6.1.0",
+    "bootstrap": "^5.3.8",
+    "d3": "^7.9.0",
+    "markmap-lib": "^0.18.12",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.28.4",
+    "@babel/core": "^7.28.5",
     "@babel/plugin-transform-class-properties": "^7.27.1",
     "@babel/plugin-transform-private-methods": "^7.27.1",
-    "@babel/preset-env": "^7.28.3",
+    "@babel/preset-env": "^7.28.5",
+    "@babel/preset-react": "^7.28.5",
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@rollup/plugin-babel": "^6.1.0",
@@ -42,16 +49,24 @@
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
+    "babel-loader": "^10.0.0",
     "concurrently": "^9.2.1",
     "conventional-changelog-conventionalcommits": "^9.1.0",
+    "css-loader": "^7.1.2",
     "eslint": "^9.38.0",
     "globals": "^16.4.0",
     "husky": "^9.1.7",
+    "postcss": "^8.5.6",
+    "postcss-loader": "^8.2.0",
     "purgecss": "^7.0.2",
     "rollup": "^4.52.5",
     "semantic-release": "^25.0.1",
+    "style-loader": "^4.0.0",
     "stylelint": "^16.25.0",
-    "stylelint-config-standard-scss": "^16.0.0"
+    "stylelint-config-standard-scss": "^16.0.0",
+    "terser-webpack-plugin": "^5.3.15",
+    "webpack": "^5.103.0",
+    "webpack-cli": "^6.0.1"
   },
   "prettier": {
     "trailingComma": "none"

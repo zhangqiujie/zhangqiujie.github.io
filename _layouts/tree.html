@@ -1,0 +1,11 @@
+---
+layout: page
+title: Categories
+---
+
+<div id="tree-root"></div>
+<script>
+fetch('/assets/category_tree.json')
+  .then(res => res.json())
+  .then(data => window.renderTree('tree-root', data));
+</script>
