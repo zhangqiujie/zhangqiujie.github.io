@@ -47,11 +47,17 @@ module Jekyll
       end
 
       json_tree = build_tree(tree)
+      json_str = JSON.pretty_generate(json_tree)
+      # 写入文件前判断是否变化
+      file_path = File.join(site.source, "assets/category_tree.json")
+      if File.exist?(file_path)
+        old_content = File.read(file_path, encoding: 'utf-8')
+        return if old_content == json_str # 内容一样就不写入
+      end
 
-      # 写入 _data/category_tree.json
-        File.open(File.join(site.source, "assets/category_tree.json"), "w", encoding: 'utf-8') do |f|
-        f.write(JSON.pretty_generate(json_tree))
-        end
+      File.open(file_path, "w", encoding: 'utf-8') do |f|
+        f.write(json_str)
+      end
     end
   end
 end

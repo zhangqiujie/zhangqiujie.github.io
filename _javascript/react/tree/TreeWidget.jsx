@@ -15,7 +15,7 @@ export default function TreeWidget({ data }) {
         };
       } else {
         return {
-          title: node.name,
+          title: <b>{node.name}</b>,
           key: node.name,
           children: node.children ? convertTreeData(node.children) : []
         };
