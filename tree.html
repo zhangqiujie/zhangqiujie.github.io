@@ -1,0 +1,37 @@
+---
+layout: page
+title: Categories
+---
+
+
+<div id="tree1"></div>
+
+<!-- 引入 jQuery、jqTree 和 Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqtree/1.6.0/jqtree.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqtree/1.6.0/tree.jquery.js"></script>
+
+<script>
+$(function() {
+  // 直接使用 Jekyll 输出的 JSON
+  const treeData = {{ site.data.category_tree | jsonify }};
+
+  $('#tree1').tree({
+    data: treeData,
+    autoOpen: true,
+    selectable: false,
+    dragAndDrop: false,
+    onCreateLi: function(node, $li) {
+      if(node.type === "file"){
+        $li.find('.jqtree-element').css('cursor', 'pointer').click(function(e) {
+          e.stopPropagation();
+          if(node.url){
+            window.location.href = node.url;
+          }
+        });
+      }
+    }
+  });
+});
+
+</script>
