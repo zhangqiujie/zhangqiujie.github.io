@@ -11,7 +11,7 @@ if ENV['JEKYLL_ENV'] != 'production' # only for local environment
         js_changed = (modified + added + removed).select { |f| f.end_with?('.js', '.jsx') }
         unless js_changed.empty?
         puts "[WatchJS] JS changed: #{js_changed.inspect}, running webpack..."
-        system("npm run pack:dev")
+        system("npm run pack")
         end
     end
 

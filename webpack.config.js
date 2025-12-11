@@ -37,5 +37,6 @@ export default {
     minimize: true,
     minimizer: [new TerserPlugin()]
   },
-  mode: isDev ? 'development' : 'production'
+  // mode: isDev ? 'development' : 'production'
+  mode: 'production'
 };
