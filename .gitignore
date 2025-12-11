@@ -23,4 +23,4 @@ package-lock.json
 !.vscode/tasks.json
 
 # Misc
-assets/js/build/react-components.min.js.map
+assets/js/build/**/*.map
