@@ -1,4 +1,3 @@
-# _plugins/category_tree.rb
 # 生成 _data/category_tree.json，用于前端树状目录
 module Jekyll
   class CategoryTreeGenerator < Generator
