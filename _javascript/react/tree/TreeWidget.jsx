@@ -1,6 +1,7 @@
 import React from 'react';
 import { Tree } from 'antd';
 import 'antd/dist/reset.css';
+import { FolderOutlined, FileOutlined } from '@ant-design/icons';
 
 export default function TreeWidget({ data }) {
 
@@ -11,11 +12,13 @@ export default function TreeWidget({ data }) {
         return {
           title: <a href={node.url}>{node.name}</a>, // 点击跳转
           key: node.url,
+          icon: <FileOutlined />,
           isLeaf: true
         };
       } else {
         return {
           title: <b>{node.name}</b>,
+          icon: <FolderOutlined />,
           key: node.name,
           children: node.children ? convertTreeData(node.children) : []
         };
@@ -23,5 +26,7 @@ export default function TreeWidget({ data }) {
     });
   };
 
-  return <Tree treeData={convertTreeData(data)} defaultExpandAll />;
+  const c = convertTreeData(data);
+  console.log(c);
+  return <Tree treeData={c} defaultExpandAll showIcon/>;
 }
