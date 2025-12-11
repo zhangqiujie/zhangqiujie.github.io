@@ -31,7 +31,6 @@
     "antd": "^6.1.0",
     "bootstrap": "^5.3.8",
     "d3": "^7.9.0",
-    "markmap-lib": "^0.18.12",
     "react": "^19.2.1",
     "react-dom": "^19.2.1"
   },
@@ -56,6 +55,9 @@
     "eslint": "^9.38.0",
     "globals": "^16.4.0",
     "husky": "^9.1.7",
+    "markmap-lib": "^0.18.12",
+    "markmap-render": "^0.18.12",
+    "node-html-to-image": "^5.0.0",
     "postcss": "^8.5.6",
     "postcss-loader": "^8.2.0",
     "purgecss": "^7.0.2",
