@@ -2,7 +2,7 @@ import path from 'path';
 import TerserPlugin from 'terser-webpack-plugin';
 
 const isDev = process.env.NODE_ENV !== 'production';
-
+console.log(isDev)
 export default {
   entry: './_javascript/react/index.jsx',
   output: {

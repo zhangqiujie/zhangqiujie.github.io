@@ -15,8 +15,8 @@
   "homepage": "https://github.com/cotes2020/jekyll-theme-chirpy/",
   "type": "module",
   "scripts": {
-    "pack": "webpack --config webpack.config.js --mode production",
-    "pack:dev": "webpack --config webpack.config.js --mode development",
+    "pack": "NODE_ENV=production webpack --config webpack.config.js",
+    "pack:dev": "NODE_ENV=development webpack --config webpack.config.js",
     "build": "concurrently npm:build:*",
     "build:css": "node purgecss.js",
     "build:js": "rollup -c --bundleConfigAsCjs --environment BUILD:production",
