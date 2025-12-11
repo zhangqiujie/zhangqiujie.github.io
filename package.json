@@ -16,6 +16,7 @@
   "type": "module",
   "scripts": {
     "pack": "webpack --config webpack.config.js --mode production",
+    "pack:dev": "webpack --config webpack.config.js --mode development",
     "build": "concurrently npm:build:*",
     "build:css": "node purgecss.js",
     "build:js": "rollup -c --bundleConfigAsCjs --environment BUILD:production",

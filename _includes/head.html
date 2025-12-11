@@ -8,20 +8,6 @@
     name="viewport"
     content="width=device-width, user-scalable=no initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
   >
-  <script>
-    window.markmap = {
-      autoLoader: { manual: true },
-    };
-  </script>
-  <style>
-    .markmap {
-      position: relative;
-    }
-    svg.markmap {
-      width: 100%;
-      height: 500px;
-    }
-  </style>
   {%- capture seo_tags -%}
     {% seo title=false %}
   {%- endcapture -%}
@@ -77,14 +63,17 @@
 
   {% include_cached favicons.html %}
 
-  <!-- Resource Hints 
-  {% unless site.assets.self_host.enabled %}
-    {% for hint in site.data.origin.cors.resource_hints %}
-      {% for link in hint.links %}
-        <link rel="{{ link.rel }}" href="{{ hint.url }}" {{ link.opts | join: ' ' }}>
+  <!-- Resource Hints -->
+  <!-- Don't need these font resources. -->
+  <!--
+    {% unless site.assets.self_host.enabled %}
+      {% for hint in site.data.origin.cors.resource_hints %}
+        {% for link in hint.links %}
+          <link rel="{{ link.rel }}" href="{{ hint.url }}" {{ link.opts | join: ' ' }}>
+        {% endfor %}
       {% endfor %}
-    {% endfor %}
-  {% endunless %} -->
+    {% endunless %} 
+  -->
 
   <!-- Bootstrap -->
   {% unless jekyll.environment == 'production' %}
@@ -94,9 +83,11 @@
   <!-- Theme style -->
   <link rel="stylesheet" href="{{ '/assets/css/:THEME.css' | replace: ':THEME', site.theme | relative_url }}">
 
-  <!-- Web Font
-  <link rel="stylesheet" href="{{ site.data.origin[type].webfonts | relative_url }}">
- -->
+  <!-- Web Font -->
+  <!-- Don't need these font resources. -->
+  <!--
+    <link rel="stylesheet" href="{{ site.data.origin[type].webfonts | relative_url }}">
+  -->
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="{{ site.data.origin[type].fontawesome.css | relative_url }}">
 
@@ -141,5 +132,8 @@
   {% endif %}
 
   {% include metadata-hook.html %}
-<script src="/assets/js/dist/react-tree.min.js"></script>
+  
+  <!-- React resources -->
+  <script src="/assets/js/build/react-components.min.js"></script>
+
 </head>

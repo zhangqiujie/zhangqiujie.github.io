@@ -1,14 +1,16 @@
 import path from 'path';
 import TerserPlugin from 'terser-webpack-plugin';
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 export default {
-  entry: './_javascript/react/tree/index.jsx',
+  entry: './_javascript/react/index.jsx',
   output: {
-    path: path.resolve('./assets/js/dist'),
-    filename: 'react-tree.min.js',
-    library: 'TreeWidget',
-    libraryTarget: 'window'
+    path: path.resolve('./assets/js/build'),
+    filename: 'react-components.min.js',
+    clean: true
   },
+  devtool: isDev ? 'source-map' : false,
   resolve: {
     extensions: ['.js', '.jsx']
   },
@@ -35,5 +37,5 @@ export default {
     minimize: true,
     minimizer: [new TerserPlugin()]
   },
-  mode: 'production'
+  mode: isDev ? 'development' : 'production'
 };

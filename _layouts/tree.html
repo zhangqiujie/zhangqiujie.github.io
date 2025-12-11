@@ -7,5 +7,5 @@ title: Categories
 <script>
 fetch('/assets/category_tree.json')
   .then(res => res.json())
-  .then(data => window.renderTree('tree-root', data));
+  .then(data => window.renderCategoryTree('tree-root', data));
 </script>

@@ -3,13 +3,12 @@ import { Tree, ConfigProvider } from "antd";
 import "antd/dist/reset.css";
 import { FolderOutlined, FileOutlined } from "@ant-design/icons";
 
-export default function TreeWidget({ data }) {
-  // 将你的 JSON 转换为 AntD Tree 可用格式
+export default function CategoryTreeWidget({ data }) {
   const convertTreeData = (nodes) => {
     return nodes.map((node) => {
       if (node.type === "file" && node.url) {
         return {
-          title: <a href={node.url}>{node.name}</a>, // 点击跳转
+          title: <a href={node.url}>{node.name}</a>,
           key: node.url,
           icon: <FileOutlined />,
           isLeaf: true
@@ -43,7 +42,7 @@ export default function TreeWidget({ data }) {
         defaultExpandAll
         showIcon
         onSelect={(selectedKeys, info) => {
-          const url = selectedKeys[0]; // key 就是我们之前设置的 url 或 name
+          const url = selectedKeys[0];
           if (url && info.node.isLeaf) {
             window.location.href = url;
           }
