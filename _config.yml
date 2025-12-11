@@ -210,6 +210,7 @@ exclude:
   - purgecss.js
   - "*.config.js"
   - "package*.json"
+  - markmap_resources
 
 jekyll-archives:
   enabled: [categories, tags]

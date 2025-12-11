@@ -22,14 +22,14 @@ async function renderMarkmap(markdown, outFile) {
 
     const image = await nodeHtmlToImage({ 
 		html,
-		quality: 100,                 // PNG质量（对jpg有效，但保留）
+		quality: 100,                 
         type: 'png',
         encoding: 'binary',
         puppeteerArgs: {
             defaultViewport: {
-                width: 2000,         // 页面宽度（提高像素）
-                height: 2000,        // 页面高度（足够容纳思维导图）
-                deviceScaleFactor: 2 // 像素倍数：2=高清，3=超清
+                width: 2000,         
+                height: 2000,       
+                deviceScaleFactor: 2 
             }
         }	
 	 });
@@ -37,7 +37,6 @@ async function renderMarkmap(markdown, outFile) {
 }
 
 async function run() {
-    // 创建输出目录（若不存在）
     if (!fs.existsSync(outDir)) {
         await mkdir(outDir, { recursive: true });
     }
@@ -50,9 +49,8 @@ async function run() {
         const filePath = path.join(mdDir, file);
         const markdown = await readFile(filePath, 'utf-8');
 
-        const baseName = path.basename(file, '.md'); // 去掉 .md
+        const baseName = path.basename(file, '.md');
         const outFile = path.join(outDir, `${baseName}.png`);
-        // 🔥 若 PNG 已存在 → 跳过
         if (fs.existsSync(outFile)) {
             console.log(`跳过（已存在）：${outFile}`);
             continue;
