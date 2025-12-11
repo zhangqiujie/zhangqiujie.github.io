@@ -28,5 +28,5 @@ export default function TreeWidget({ data }) {
 
   const c = convertTreeData(data);
   console.log(c);
-  return <Tree treeData={c} defaultExpandAll showIcon/>;
+  return <Tree treeData={c} defaultExpandAll showIcon />;
 }
