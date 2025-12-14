@@ -50,8 +50,11 @@ RUN set -x; buildDeps='gcc libc6-dev make wget' \
 
 从本地构建上下文复制文件/目录到镜像中, `src` 都是指定`相对路径`。如果路径父目录不存在，会自动创建目录。
 
+`COPY` 会保留源文件的权限。可以通过chown来修改文件所属用户及所属组。
+
 ```
 COPY <src> <src> ... <dest>
+COPY --chown=55:mygroup files* /mydir/
 ```
 
 ### ADD 指令
