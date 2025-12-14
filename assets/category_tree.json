@@ -44,6 +44,16 @@
             "name": "Docker - 镜像、容器、仓库",
             "type": "file",
             "url": "/posts/Docker-%E6%A6%82%E5%BF%B5/"
+          },
+          {
+            "name": "Docker - 使用镜像",
+            "type": "file",
+            "url": "/posts/Docker-%E4%BD%BF%E7%94%A8%E9%95%9C%E5%83%8F/"
+          },
+          {
+            "name": "Docker - 使用 Dockerfile 定制镜像",
+            "type": "file",
+            "url": "/posts/Docker-%E4%BD%BF%E7%94%A8-Dockerfile-%E5%AE%9A%E5%88%B6%E9%95%9C%E5%83%8F/"
           }
         ]
       }

@@ -24,7 +24,7 @@ RUN echo '<h1>Hello Docker</h1>' > /usr/share/nginx/html/index.html
 
 这个Dockerfile以nginx最新版本的镜像最基础，通过RUN语句执行echo命令，建立一层新的只读层。
 
-### RUN 执行命令
+### RUN 指令
 
 - shell 格式： `RUN <命令>`
 - exec 格式：`RUN ["可执行文件", "参数1", "参数2"]`
