@@ -72,6 +72,27 @@ ADD https://example.com/app.jar /app/app.jar
 ADD app.tar.gz /opt/   # 会解压到 /opt/app/
 ```
 
+### CMD 指令
+
+用于指定默认的容器主进程的启动命令。有三种格式：
+
+```
+CMD <shell 命令> # 会解析成 CMD ["shell", "-c", "命令"]
+CMD ["可执行文件", "参数1", "参数2"...]
+CMD ["参数1", "参数2"...] # 在指定了 ENTRYPOINT 指令后，用 CMD 指定具体的参数。
+```
+
+这个是默认的容器主进程启动命令，在容器启动时可以指定其他主进程。例如ubuntu的默认CMD应该是bash，但下面这句话可以指定主进程是执行cat，打印完就退出了。
+
+```
+docker run -it ubuntu cat /etc/os-release
+```
+
+Docker不是虚拟机，容器就是为了主进程而存在的，所以不能把服务以守护进程的方式放到后台运行。像nginx启动的话，应显示指定前台运行：
+```
+CMD ["nginx", "-g", "daemon off;"]
+```
+
 ### 构建镜像
 
 命令：
