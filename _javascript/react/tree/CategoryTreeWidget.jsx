@@ -1,6 +1,5 @@
 import React from "react";
 import { Tree, ConfigProvider } from "antd";
-import "antd/dist/reset.css";
 import { FolderOutlined, FileOutlined } from "@ant-design/icons";
 
 export default function CategoryTreeWidget({ data }) {

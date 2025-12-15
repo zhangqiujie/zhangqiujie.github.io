@@ -1,62 +1,65 @@
-# 生成 _data/category_tree.json，用于前端树状目录
-module Jekyll
-  class CategoryTreeGenerator < Generator
-    safe true
-    priority :high
+# _plugins/category_tree.rb
+require "json"
 
-    def generate(site)
+module Jekyll
+  class CategoryTreeGenerator
+    def self.generate(site)
       tree = {}
 
       site.posts.docs.each do |post|
         current = tree
-        categories = post.data['categories'] || []
+        categories = post.data["categories"] || []
 
-        # 遍历文章的分类层级
         categories.each do |cat|
           current[cat] ||= {}
           current = current[cat]
         end
 
-        # "_files" 存放直属文章
         current["_files"] ||= []
         current["_files"] << {
-          "name" => post.data['title'],
+          "name" => post.data["title"],
           "type" => "file",
-          "url"  => post.url # Jekyll 会自动生成相对 URL
+          "url"  => post.url
         }
       end
 
-      # 递归把 tree 转成前端可用的 JSON 格式
-      def build_tree(node)
-        result = []
-        node.each do |key, value|
-          if key == "_files"
-            value.each do |file|
-              result << file
-            end
-          else
-            children = build_tree(value)
-            result << {
-              "name" => key,
-              "children" => children
-            }
-          end
+      build_tree(tree)
+    end
+
+    def self.build_tree(node)
+      result = []
+
+      node.each do |key, value|
+        if key == "_files"
+          result.concat(value)
+        else
+          result << {
+            "name" => key,
+            "children" => build_tree(value)
+          }
         end
-        result
       end
 
-      json_tree = build_tree(tree)
-      json_str = JSON.pretty_generate(json_tree)
-      # 写入文件前判断是否变化
-      file_path = File.join(site.source, "assets/category_tree.json")
-      if File.exist?(file_path) || File.read(json_path) != new_json
-        old_content = File.read(file_path, encoding: 'utf-8')
-        return if old_content == json_str # 内容一样就不写入
-      end
-
-      File.open(file_path, "w", encoding: 'utf-8') do |f|
-        f.write(json_str)
-      end
+      result
     end
   end
+end
+
+# Hook 在 post_write 阶段生成 JSON
+Jekyll::Hooks.register :site, :post_write do |site|
+  json_tree = Jekyll::CategoryTreeGenerator.generate(site)
+  json_str  = JSON.pretty_generate(json_tree)
+
+  # 输出到 assets 目录
+  output_dir = File.join(site.source, "assets")
+  Dir.mkdir(output_dir) unless Dir.exist?(output_dir)
+  output_file = File.join(output_dir, "category_tree.json")
+
+  # 幂等写入
+  if File.exist?(output_file)
+    old = File.read(output_file, encoding: "utf-8")
+    next if old == json_str
+  end
+
+  File.write(output_file, json_str, encoding: "utf-8")
 end
