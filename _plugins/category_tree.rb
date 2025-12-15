@@ -5,7 +5,7 @@ module Jekyll
   class CategoryTreeGenerator
     def self.generate(site)
       tree = {}
-
+      
       site.posts.docs.each do |post|
         current = tree
         categories = post.data["categories"] || []
@@ -46,13 +46,17 @@ module Jekyll
 end
 
 # Hook 在 post_write 阶段生成 JSON
-Jekyll::Hooks.register :site, :after_init do |site|
+Jekyll::Hooks.register :site, :post_write do |site|
   json_tree = Jekyll::CategoryTreeGenerator.generate(site)
   json_str  = JSON.pretty_generate(json_tree)
 
-  # 输出到 assets 目录
-  output_dir = File.join(site.source, "assets")
-  Dir.mkdir(output_dir) unless Dir.exist?(output_dir)
+  # 最终输出目录，优先使用环境变量 SITE_BASE_PATH
+  site_base = ENV['SITE_BASE_PATH'] && !ENV['SITE_BASE_PATH'].empty? ? ENV['SITE_BASE_PATH'] : site.dest
+  output_dir = File.join(site_base, "assets")
+
+  # 创建目录（可创建多级目录）
+  FileUtils.mkdir_p(output_dir)
+
   output_file = File.join(output_dir, "category_tree.json")
 
   # 幂等写入

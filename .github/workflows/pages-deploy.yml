@@ -49,6 +49,7 @@ jobs:
         run: bundle exec jekyll b -d "_site${{ steps.pages.outputs.base_path }}"
         env:
           JEKYLL_ENV: "production"
+          SITE_BASE_PATH: "_site${{ steps.pages.outputs.base_path }}"
 
       - name: Test site
         run: |
