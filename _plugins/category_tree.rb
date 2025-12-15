@@ -46,7 +46,7 @@ module Jekyll
 end
 
 # Hook 在 post_write 阶段生成 JSON
-Jekyll::Hooks.register :site, :post_render do |site|
+Jekyll::Hooks.register :site, :after_init do |site|
   json_tree = Jekyll::CategoryTreeGenerator.generate(site)
   json_str  = JSON.pretty_generate(json_tree)
 
