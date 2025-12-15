@@ -24,3 +24,4 @@ package-lock.json
 
 # Misc
 assets/js/build/**/*.map
+assets/category_tree.json
