@@ -93,6 +93,31 @@ Docker不是虚拟机，容器就是为了主进程而存在的，所以不能�
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
+### ENTRYPOINT 指令
+
+1. ENTRYPOINT 的目的和 CMD 一样，都是在指定容器启动程序及参数。当有ENTRYPOINT时，CMD的作用就变成给ENTRYPOINT指定的程序提供参数。
+
+```
+FROM ubuntu:18.04
+RUN apt-get update \
+    && apt-get install -y curl \
+    && rm -rf /var/lib/apt/lists/*
+ENTRYPOINT [ "curl", "-s", "http://myip.ipip.net" ]
+```
+
+当构建镜像为`myip`时，可以通过以下方式给curl提供参数：
+
+```
+docker run myip -i
+```
+
+2. ENTRYPOINT 用于指定容器启动时始终执行的入口脚本，该脚本可完成初始化、权限设置等预处理工作，并根据传入的 CMD 参数决定是否切换用户或直接执行命令.
+```
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+CMD ["redis-server"]
+```
+配合脚本逻辑：若 CMD 为 redis-server 且当前为 root，则切换至非特权用户运行服务；否则直接以 root 执行传入的命令（如 docker run -it image id），兼顾安全与调试灵活性。
+
 ### 构建镜像
 
 命令：
