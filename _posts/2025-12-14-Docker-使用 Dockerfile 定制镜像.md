@@ -14,7 +14,7 @@ mermaid: true
 
 `Dockerfile`是一个文本文件，其内包含了一条条的 指令(Instruction)，**每一条指令**构建一层，因此每一条指令的内容，就是描述该层应当如何构建。
 
-### From 指令
+## From 指令
 
 例如：~/docker-demo/Dockerfile
 ```
@@ -24,7 +24,7 @@ RUN echo '<h1>Hello Docker</h1>' > /usr/share/nginx/html/index.html
 
 这个Dockerfile以nginx最新版本的镜像最基础，通过RUN语句执行echo命令，建立一层新的只读层。
 
-### RUN 指令
+## RUN 指令
 
 - shell 格式： `RUN <命令>`
 - exec 格式：`RUN ["可执行文件", "参数1", "参数2"]`
@@ -46,7 +46,7 @@ RUN set -x; buildDeps='gcc libc6-dev make wget' \
     && apt-get purge -y --auto-remove $buildDeps
 ```
 
-### COPY 复制文件
+## COPY 复制文件
 
 从本地构建上下文复制文件/目录到镜像中, `src` 都是指定`相对路径`。如果路径父目录不存在，会自动创建目录。
 
@@ -57,7 +57,7 @@ COPY <src> <src> ... <dest>
 COPY --chown=55:mygroup files* /mydir/
 ```
 
-### ADD 更高级的复制文件
+## ADD 更高级的复制文件
 
 支持复制上下文目录的文件/目录，从远程下载文件，或者解压上下文目录里的压缩包到镜像中。如果是只要复制文件，优先用`COPY`。
 
@@ -72,7 +72,7 @@ ADD https://example.com/app.jar /app/app.jar
 ADD app.tar.gz /opt/   # 会解压到 /opt/app/
 ```
 
-### CMD 容器启动命令
+## CMD 容器启动命令
 
 用于指定默认的容器主进程的启动命令。有三种格式：
 
@@ -93,7 +93,7 @@ Docker不是虚拟机，容器就是为了主进程而存在的，所以不能�
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
-### ENTRYPOINT 入口点
+## ENTRYPOINT 入口点
 
 - ENTRYPOINT 的目的和 CMD 一样，都是在指定容器启动程序及参数。当有ENTRYPOINT时，CMD的作用就变成给ENTRYPOINT指定的程序提供参数。
 
@@ -119,7 +119,7 @@ CMD ["redis-server"]
 配合脚本逻辑：若 CMD 为 redis-server 且当前为 root，则切换至非特权用户运行服务；否则直接以 root 执行传入的命令（如 docker run -it image id），兼顾安全与调试灵活性。
 
 
-### ENV 设置环境变量
+## ENV 设置环境变量
 
 用于设置环境变量，可以在Dcokerfile里取到，也会在容器启动后生效。
 
@@ -130,7 +130,7 @@ RUN curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-
 ...
 ```
 
-### ARG 构建参数
+## ARG 构建参数
 
 ARG 设置的参数只能用在构建时，不会存在于容器中。
 
@@ -148,7 +148,7 @@ ARG DOCKER_USERNAME=library
 RUN set -x ; echo ${DOCKER_USERNAME}
 ```
 
-### VOLUME 定义匿名卷
+## VOLUME 定义匿名卷
 
 容器运行时应该尽量保持容器存储层不发生写操作，可以直接用VOLUMN 命令事先指定某些目录挂载为匿名卷。这样在运行时如果用户不指定挂载，其应用也可以正常运行，不会向容器存储层写入大量数据。
 
@@ -158,11 +158,11 @@ VOLUME /data
 
 可以用docker inspect [image] 查看匿名卷的位置。
 
-### EXPOSE 暴露端口
+## EXPOSE 暴露端口
 
 EXPOSE 仅限于元数据和文档用途，声明该镜像可用端口，最终容器开启后要暴露的端口需要依靠 `docker run -p xx:xx`
 
-### WORKDIR 指定工作目录
+## WORKDIR 指定工作目录
 
 因为docker的分层存储结构，这两个RUN指令其实运行在不同的容器环境中，不能做到将文本输出到 `/app/word.txt`里
 
@@ -179,7 +179,7 @@ WORKDIR /app
 RUN echo "hello" > world.txt
 ```
 
-### USER 指定当前用户
+## USER 指定当前用户
 
 USER 指令和 WORKDIR 相似，都是改变环境状态并影响以后的层。WORKDIR 是改变工作目录，USER 则是改变之后层的执行 RUN, CMD 以及 ENTRYPOINT 这类命令的身份。
 
@@ -191,7 +191,7 @@ USER redis
 RUN [ "redis-server" ]
 ```
 
-### 构建镜像
+## 构建镜像
 
 命令：
 ```
@@ -201,7 +201,7 @@ docker build -t nginx:v10 .
 
 `docker build`需要在Dockerfile所在目录下执行。
 
-### 镜像构建上下文
+## 镜像构建上下文
 
 首先了解，镜像构建的工作原理。
 
@@ -214,7 +214,7 @@ docker build -t nginx:v10 .
 
 当执行`docker build`时，CLI 并不直接读取文件，而是将构建所需的所有材料打包发送给引擎。`docker build`最后一个参数上下文路径不是指`Dockerfile`所在目录。是用户指定的一个本地目录路径（或 URL、标准输入），`Docker CLI` 会将该路径下的所有文件（除 `.dockerignore` 排除外）递归打包成一个 `tar` 流，并上传给`Docker 引擎`。引擎在隔离环境中解压此上下文后，才能访问其中的文件用于 `COPY`、`ADD` 等指令。
 
-### 指定 git 仓库构建镜像
+## 指定 git 仓库构建镜像
 
 ```
 docker build -t hello-world:v1 https://github.com/docker-library/hello-world.git#master:amd64/hello-world
