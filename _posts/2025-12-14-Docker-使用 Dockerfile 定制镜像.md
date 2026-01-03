@@ -156,7 +156,7 @@ RUN set -x ; echo ${DOCKER_USERNAME}
 VOLUME /data
 ```
 
-可以用docker inspect <image> 查看匿名卷的位置。
+可以用docker inspect [image] 查看匿名卷的位置。
 
 ### EXPOSE 暴露端口
 
