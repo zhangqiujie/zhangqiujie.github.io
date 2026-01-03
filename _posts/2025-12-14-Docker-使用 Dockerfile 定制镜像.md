@@ -46,7 +46,7 @@ RUN set -x; buildDeps='gcc libc6-dev make wget' \
     && apt-get purge -y --auto-remove $buildDeps
 ```
 
-### COPY 指令
+### COPY 复制文件
 
 从本地构建上下文复制文件/目录到镜像中, `src` 都是指定`相对路径`。如果路径父目录不存在，会自动创建目录。
 
@@ -57,7 +57,7 @@ COPY <src> <src> ... <dest>
 COPY --chown=55:mygroup files* /mydir/
 ```
 
-### ADD 指令
+### ADD 更高级的复制文件
 
 支持复制上下文目录的文件/目录，从远程下载文件，或者解压上下文目录里的压缩包到镜像中。如果是只要复制文件，优先用`COPY`。
 
@@ -72,7 +72,7 @@ ADD https://example.com/app.jar /app/app.jar
 ADD app.tar.gz /opt/   # 会解压到 /opt/app/
 ```
 
-### CMD 指令
+### CMD 容器启动命令
 
 用于指定默认的容器主进程的启动命令。有三种格式：
 
@@ -93,9 +93,9 @@ Docker不是虚拟机，容器就是为了主进程而存在的，所以不能�
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
-### ENTRYPOINT 指令
+### ENTRYPOINT 入口点
 
-1. ENTRYPOINT 的目的和 CMD 一样，都是在指定容器启动程序及参数。当有ENTRYPOINT时，CMD的作用就变成给ENTRYPOINT指定的程序提供参数。
+- ENTRYPOINT 的目的和 CMD 一样，都是在指定容器启动程序及参数。当有ENTRYPOINT时，CMD的作用就变成给ENTRYPOINT指定的程序提供参数。
 
 ```
 FROM ubuntu:18.04
@@ -111,12 +111,85 @@ ENTRYPOINT [ "curl", "-s", "http://myip.ipip.net" ]
 docker run myip -i
 ```
 
-2. ENTRYPOINT 用于指定容器启动时始终执行的入口脚本，该脚本可完成初始化、权限设置等预处理工作，并根据传入的 CMD 参数决定是否切换用户或直接执行命令.
+- ENTRYPOINT 用于指定容器启动时始终执行的入口脚本，该脚本可完成初始化、权限设置等预处理工作，并根据传入的 CMD 参数决定是否切换用户或直接执行命令.
 ```
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["redis-server"]
 ```
 配合脚本逻辑：若 CMD 为 redis-server 且当前为 root，则切换至非特权用户运行服务；否则直接以 root 执行传入的命令（如 docker run -it image id），兼顾安全与调试灵活性。
+
+
+### ENV 设置环境变量
+
+用于设置环境变量，可以在Dcokerfile里取到，也会在容器启动后生效。
+
+```
+ENV NODE_VERSION 7.2.0
+
+RUN curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" 
+...
+```
+
+### ARG 构建参数
+
+ARG 设置的参数只能用在构建时，不会存在于容器中。
+
+ARG 指令有生效范围，如果在 FROM 指令之前指定，那么只能用于 FROM 指令中。
+
+```
+# 只在 FROM 中生效
+ARG DOCKER_USERNAME=library
+
+FROM ${DOCKER_USERNAME}/alpine
+
+# 要想在 FROM 之后使用，必须再次指定
+ARG DOCKER_USERNAME=library
+
+RUN set -x ; echo ${DOCKER_USERNAME}
+```
+
+### VOLUME 定义匿名卷
+
+容器运行时应该尽量保持容器存储层不发生写操作，可以直接用VOLUMN 命令事先指定某些目录挂载为匿名卷。这样在运行时如果用户不指定挂载，其应用也可以正常运行，不会向容器存储层写入大量数据。
+
+```
+VOLUME /data
+```
+
+可以用docker inspect <image> 查看匿名卷的位置。
+
+### EXPOSE 暴露端口
+
+EXPOSE 仅限于元数据和文档用途，声明该镜像可用端口，最终容器开启后要暴露的端口需要依靠 `docker run -p xx:xx`
+
+### WORKDIR 指定工作目录
+
+因为docker的分层存储结构，这两个RUN指令其实运行在不同的容器环境中，不能做到将文本输出到 `/app/word.txt`里
+
+```
+RUN cd /app
+RUN echo "hello" > world.txt
+```
+
+需要用`WORKDIR`指定工作目录
+
+```
+WORKDIR /app
+
+RUN echo "hello" > world.txt
+```
+
+### USER 指定当前用户
+
+USER 指令和 WORKDIR 相似，都是改变环境状态并影响以后的层。WORKDIR 是改变工作目录，USER 则是改变之后层的执行 RUN, CMD 以及 ENTRYPOINT 这类命令的身份。
+
+```
+RUN groupadd -r redis && useradd -r -g redis redis
+
+USER redis
+
+RUN [ "redis-server" ]
+```
 
 ### 构建镜像
 
