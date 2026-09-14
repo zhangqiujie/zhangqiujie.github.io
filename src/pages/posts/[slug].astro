@@ -12,6 +12,16 @@ const { Content } = await render(post.entry);
 <BaseLayout title={`${post.title} / 未命名变量`} description={post.excerpt ?? post.title}>
   <article class="py-10 sm:py-14"><div class="flex items-center gap-5"><a data-back-link class="group inline-flex shrink-0 items-center gap-3 text-sm font-medium tracking-[-.02em] text-slate-500 transition hover:text-sky-700" href={sitePath()}><span class="text-2xl font-light leading-none transition-transform duration-300 group-hover:-translate-x-1">←</span><span>返回文章列表</span></a><span class="h-px flex-1 bg-slate-200/80"></span></div><div class="mt-10"><PostMeta publishedAt={post.publishedAt} categories={post.categories} /><h1 class="mt-4 max-w-3xl text-3xl font-bold tracking-[-.045em] sm:text-4xl">{post.title}</h1>{post.tags.length > 0 && <div class="mt-5 flex flex-wrap gap-2">{post.tags.map((tag) => <TagBadge tag={tag} />)}</div>}<div class="prose-tech mt-10"><Content /></div></div></article>
 </BaseLayout>
+{post.math && <><script is:inline>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      tags: 'ams',
+    },
+    options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] },
+  };
+</script><script is:inline async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script></>}
 <script>
   document.querySelector('[data-back-link]')?.addEventListener('click', (event) => {
     if (document.referrer.startsWith(window.location.origin)) { event.preventDefault(); history.back(); }

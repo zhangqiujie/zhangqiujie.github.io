@@ -16,6 +16,7 @@ export function normalizePost(entry: PostEntry): Post {
     categories: toStringArray(data.categories),
     tags: toStringArray(data.tags),
     excerpt: data.excerpt ?? data.description ?? undefined,
+    math: data.math === true,
     entry,
   };
 }

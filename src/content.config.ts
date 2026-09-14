@@ -13,6 +13,7 @@ const posts = defineCollection({
     excerpt: z.string().nullish(),
     description: z.string().nullish(),
     draft: z.boolean().nullish(),
+    math: z.boolean().nullish(),
   }).passthrough(),
 });
 
