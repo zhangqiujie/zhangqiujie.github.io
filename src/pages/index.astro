@@ -1,0 +1,11 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import Pagination from '../components/Pagination.astro';
+import { getPosts } from '../lib/posts/get-posts';
+import { paginatePosts } from '../lib/posts/paginate-posts';
+const page = paginatePosts(await getPosts(), 1);
+---
+<BaseLayout>
+  <section class="py-12 sm:py-16"><div class="mb-3 flex items-end justify-between border-b border-slate-200/80 pb-6"><div><p class="eyebrow">RECENT WRITING</p><h1 class="mt-2 text-3xl font-semibold tracking-[-.055em] text-slate-950">最新文章</h1></div><span class="font-mono text-[10px] text-slate-400">{page.items.length.toString().padStart(2, '0')} ENTRIES</span></div><div>{page.items.map((post) => <PostCard post={post} />)}</div><Pagination currentPage={page.currentPage} totalPages={page.totalPages} /></section>
+</BaseLayout>

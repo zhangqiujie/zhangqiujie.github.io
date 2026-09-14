@@ -1,0 +1,8 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TagCloud from '../../components/TagCloud.astro';
+import { getPosts } from '../../lib/posts/get-posts';
+import { buildTagIndex } from '../../lib/posts/taxonomy';
+const tags = [...buildTagIndex(await getPosts()).entries()].sort(([a], [b]) => a.localeCompare(b, 'zh-CN'));
+---
+<BaseLayout title="标签 / 未命名变量" description="按标签浏览全部技术文章。"><section class="py-12 sm:py-16"><div class="border-b border-slate-200/80 pb-6"><p class="eyebrow">RETRIEVAL INDEX</p><h1 class="mt-2 text-3xl font-semibold tracking-[-.055em] text-slate-950">标签</h1></div><div class="mt-6"><TagCloud tags={tags} /></div></section></BaseLayout>

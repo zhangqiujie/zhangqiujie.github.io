@@ -1,0 +1,10 @@
+---
+import { sitePath } from '../utils/site-path';
+const { categories } = Astro.props;
+---
+<div class="border-b border-slate-200/80 py-5 font-mono text-sm">
+  {categories.map((category, index) => <section class:list={['py-3', index > 0 && 'border-t border-slate-100']}>
+    <div class="flex items-center gap-3 text-slate-800"><span class="text-sky-500">▾</span><span>{category.label}</span><span class="text-[10px] text-slate-400">{category.posts.length}</span></div>
+    {category.children.length > 0 ? <ul class="ml-2 mt-3 border-l border-slate-200 pl-5">{category.children.map((child) => <li class="relative py-2 text-slate-500"><span class="absolute -left-5 top-4 h-px w-3 border-t border-slate-200"></span><div class="flex items-center gap-2"><span class="text-sky-400">▾</span><span>{child.label}</span><span class="text-[10px] text-slate-400">{child.posts.length}</span></div><ul class="ml-2 mt-2 border-l border-slate-200 pl-5">{child.posts.map((post) => <li class="relative py-1.5"><span class="absolute -left-5 top-3.5 h-px w-3 border-t border-slate-200"></span><a class="text-slate-500 transition hover:text-sky-700" href={sitePath(`posts/${post.slug}/`)}>{post.title}</a></li>)}</ul></li>)}</ul> : <ul class="ml-2 mt-3 border-l border-slate-200 pl-5">{category.posts.map((post) => <li class="relative py-1.5"><span class="absolute -left-5 top-3.5 h-px w-3 border-t border-slate-200"></span><a class="text-slate-500 transition hover:text-sky-700" href={sitePath(`posts/${post.slug}/`)}>{post.title}</a></li>)}</ul>}
+  </section>)}
+</div>

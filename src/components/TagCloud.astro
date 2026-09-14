@@ -1,0 +1,6 @@
+---
+import { normalizeSlug } from '../utils/slug';
+import { sitePath } from '../utils/site-path';
+const { tags } = Astro.props;
+---
+<div class="flex flex-wrap gap-2">{tags.map(([tag, posts]) => <a class="rounded-full border border-slate-200 bg-white px-3 py-2 font-mono text-xs text-slate-600 transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700" href={sitePath(`tags/${normalizeSlug(tag)}/`)}>{tag}<span class="ml-2 text-slate-400">{posts.length}</span></a>)}</div>

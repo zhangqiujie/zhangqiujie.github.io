@@ -1,0 +1,8 @@
+---
+import { formatDate } from '../utils/format-date';
+const { publishedAt, categories = [] } = Astro.props;
+---
+<div class="font-mono text-xs tracking-wide text-slate-500">
+  <time datetime={publishedAt.toISOString()}>{formatDate(publishedAt)}</time>
+  {categories.length > 0 && <span> · {categories.join(' / ')}</span>}
+</div>

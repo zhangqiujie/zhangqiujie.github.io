@@ -1,0 +1,32 @@
+---
+import '../styles/global.css';
+import TerminalHeader from '../components/TerminalHeader.astro';
+import { sitePath } from '../utils/site-path';
+const { title = '未命名变量', description = '给尚未定型的问题一个名字。' } = Astro.props;
+const menuItems = [
+  { label: '首页', code: 'INDEX', href: sitePath() },
+  { label: '目录', code: 'MAP', href: sitePath('categories/') },
+  { label: '标签', code: 'TAGS', href: sitePath('tags/') },
+];
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (href: string) => (href.replace(/\/$/, '') || '/') === currentPath;
+---
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" /><meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} /><title>{title}</title>
+  </head>
+  <body class="min-h-screen text-slate-900 antialiased">
+    <div class="mx-auto grid min-h-screen max-w-[1440px] lg:grid-cols-[18rem_minmax(0,1fr)]">
+      <aside class="border-b border-slate-200/80 bg-transparent px-5 py-7 shadow-[inset_-1px_0_0_rgba(255,255,255,.55)] sm:px-8 lg:sticky lg:top-0 lg:h-screen lg:border-r lg:border-b-0 lg:px-9 lg:py-10">
+        <div class="flex h-full flex-col">
+          <div><TerminalHeader label="PERSONAL KNOWLEDGE BASE" /><a class="site-wordmark mt-7 block" href={sitePath()} aria-label="未命名变量，返回首页"><span class="flex items-end gap-1"><span class="site-wordmark-solid">未命名</span><span class="site-wordmark-outline">变量</span></span><span class="mt-2 flex items-center gap-2 font-mono text-[9px] tracking-[.18em] text-sky-600"><span class="h-px w-5 bg-sky-400"></span>VAR_000</span></a><span class="mt-4 block max-w-[15rem] text-sm leading-6 text-slate-500">专注于 Java 架构、AI 探索、量化交易与独立开发的个人技术、学习笔记与思考空间。</span></div>
+          <nav class="mt-8 border-t border-slate-200/80 pt-5" aria-label="主菜单"><div class="flex gap-2 lg:flex-col">{menuItems.map((item, index) => <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined} class:list={['group relative grid min-w-0 grid-cols-[1.35rem_auto] items-center gap-x-2 overflow-hidden rounded-md px-2 py-2.5 font-mono text-xs transition duration-300 lg:grid-cols-[1.35rem_1fr_auto]', isActive(item.href) ? 'bg-sky-50 text-sky-700' : 'text-slate-500 hover:bg-white hover:text-slate-900']}><span class:list={['font-mono text-[9px] transition', isActive(item.href) ? 'text-sky-500' : 'text-slate-300 group-hover:text-sky-400']}>{String(index + 1).padStart(2, '0')}</span><span class="relative z-10 font-sans text-sm font-medium tracking-[-.02em]">{item.label}</span><span class:list={['hidden text-[9px] tracking-[.12em] lg:block', isActive(item.href) ? 'text-sky-500' : 'text-slate-300 group-hover:text-sky-400']}>{item.code}</span><span class:list={['absolute inset-y-0 left-0 w-0.5 bg-sky-500 transition-transform duration-300', isActive(item.href) ? 'translate-x-0' : '-translate-x-full group-hover:translate-x-0']}></span><span class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-sky-100/70 to-transparent transition-transform duration-700 group-hover:translate-x-full"></span></a>)}</div></nav>
+          <div class="mt-auto hidden border-t border-slate-200/80 pt-5 lg:block"><a class="group flex items-center gap-2 font-mono text-[10px] tracking-wide text-slate-400 transition hover:text-sky-600" href="mailto:zhangqiujie888@gmail.com"><svg class="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3 7 9 6 9-6"></path></svg><span>zhangqiujie888@gmail.com</span></a><div class="mt-5 font-mono text-[10px] leading-5 tracking-wide text-slate-400"><div>© {new Date().getFullYear()}</div><div>WRITING IN PUBLIC</div></div></div>
+        </div>
+      </aside>
+      <div class="min-w-0"><main class="px-5 pb-16 sm:px-9 lg:px-12 xl:px-16"><slot /></main><footer class="px-5 pb-8 sm:px-9 lg:px-12 xl:px-16"><div class="border-t border-slate-200/80 pt-5 font-mono text-[10px] tracking-wide text-slate-400 lg:hidden">© {new Date().getFullYear()} · WRITING IN PUBLIC</div></footer></div>
+    </div>
+  </body>
+</html>

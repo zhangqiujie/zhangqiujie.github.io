@@ -1,0 +1,10 @@
+---
+const { currentPage, totalPages } = Astro.props;
+import { sitePath } from '../utils/site-path';
+const href = (page: number) => sitePath(page === 1 ? '' : `page/${page}/`);
+---
+{totalPages > 1 && <nav class="mt-10 flex items-center justify-between border-t border-slate-200 pt-6 font-mono text-xs" aria-label="文章分页">
+  {currentPage > 1 ? <a href={href(currentPage - 1)}>← PREV</a> : <span class="text-slate-300">← PREV</span>}
+  <span class="text-slate-500">{currentPage} / {totalPages}</span>
+  {currentPage < totalPages ? <a href={href(currentPage + 1)}>NEXT →</a> : <span class="text-slate-300">NEXT →</span>}
+</nav>}

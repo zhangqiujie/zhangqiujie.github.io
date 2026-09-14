@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import Pagination from '../../components/Pagination.astro';
+import { getPosts } from '../../lib/posts/get-posts';
+import { paginatePosts } from '../../lib/posts/paginate-posts';
+export async function getStaticPaths() {
+  const posts = await getPosts(); const totalPages = Math.ceil(posts.length / 8);
+  return Array.from({ length: Math.max(totalPages - 1, 0) }, (_, index) => ({ params: { page: String(index + 2) } }));
+}
+const page = paginatePosts(await getPosts(), Number(Astro.params.page));
+---
+<BaseLayout title={`第 ${page.currentPage} 页 / 未命名变量`}><section class="py-12 sm:py-16"><p class="eyebrow">ARCHIVE / {page.currentPage}</p><div class="mt-5">{page.items.map((post) => <PostCard post={post} />)}</div><Pagination currentPage={page.currentPage} totalPages={page.totalPages} /></section></BaseLayout>

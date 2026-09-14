@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getPosts } from '../../lib/posts/get-posts';
+import { buildCategoryTree, findCategoryBySegments } from '../../lib/posts/taxonomy';
+import { sitePath } from '../../utils/site-path';
+export async function getStaticPaths() {
+  const tree = buildCategoryTree(await getPosts());
+  const paths = [];
+  function visit(nodes, parents = []) { nodes.forEach((node) => { const segments = [...parents, node.slug]; paths.push({ params: { segments: segments.join('/') }, props: { segments, node } }); visit(node.children, segments); }); }
+  visit(tree); return paths;
+}
+const { segments, node } = Astro.props;
+const categoryTree = buildCategoryTree(await getPosts());
+const trail = segments.map((segment, index) => ({
+  label: index === segments.length - 1 ? node.label : findCategoryBySegments(categoryTree, segments.slice(0, index + 1))?.label,
+  href: sitePath(`categories/${segments.slice(0, index + 1).join('/')}/`),
+}));
+---
+<BaseLayout title={`${node.label} / 未命名变量`}><section class="py-12 sm:py-16"><nav class="flex flex-wrap gap-2 font-mono text-[10px] tracking-wide text-slate-400">{trail.map((item, index) => <><a class="hover:text-sky-600" href={item.href}>{item.label}</a>{index < trail.length - 1 && <span>/</span>}</>)}</nav><div class="mt-4 flex items-end justify-between gap-6 border-b border-slate-200/80 pb-6"><h1 class="text-3xl font-semibold tracking-[-.055em] text-slate-950">{node.label}</h1><span class="font-mono text-[10px] text-slate-400">{node.posts.length} POSTS</span></div>{node.children.length > 0 && <div class="mt-6 flex flex-wrap gap-2">{node.children.map((child) => <a class="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 hover:border-sky-300 hover:text-sky-700" href={sitePath(`categories/${segments.join('/')}/${child.slug}/`)}>{child.label} <span class="font-mono text-[10px] text-slate-400">{child.posts.length}</span></a>)}</div>}<div class="mt-4">{node.posts.map((post) => <PostCard post={post} />)}</div></section></BaseLayout>

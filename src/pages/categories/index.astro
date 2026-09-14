@@ -1,0 +1,8 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CategoryTree from '../../components/CategoryTree.astro';
+import { getPosts } from '../../lib/posts/get-posts';
+import { buildCategoryTree } from '../../lib/posts/taxonomy';
+const categories = buildCategoryTree(await getPosts());
+---
+<BaseLayout title="目录 / 未命名变量" description="按主题与子主题浏览全部文章。"><section class="py-12 sm:py-16"><div class="border-b border-slate-200/80 pb-6"><p class="eyebrow">KNOWLEDGE MAP</p><h1 class="mt-2 text-3xl font-semibold tracking-[-.055em] text-slate-950">目录</h1></div><div class="mt-3"><CategoryTree categories={categories} /></div></section></BaseLayout>
