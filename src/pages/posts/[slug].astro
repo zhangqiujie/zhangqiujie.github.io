@@ -5,12 +5,57 @@ import PostMeta from '../../components/PostMeta.astro';
 import TagBadge from '../../components/TagBadge.astro';
 import { getPosts } from '../../lib/posts/get-posts';
 import { sitePath } from '../../utils/site-path';
-export async function getStaticPaths() { return (await getPosts()).map((post) => ({ params: { slug: post.slug }, props: { post } })); }
-const { post } = Astro.props;
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+
+  return posts.map((post, index) => ({
+    params: { slug: post.slug },
+    props: {
+      post,
+      previousPost: posts[index + 1],
+      nextPost: posts[index - 1],
+    },
+  }));
+}
+
+const { post, previousPost, nextPost } = Astro.props;
 const { Content } = await render(post.entry);
 ---
 <BaseLayout title={`${post.title} / 未命名变量`} description={post.excerpt ?? post.title}>
-  <article class="py-10 sm:py-14"><div class="flex items-center gap-5"><a data-back-link class="group inline-flex shrink-0 items-center gap-3 text-sm font-medium tracking-[-.02em] text-slate-500 transition hover:text-sky-700" href={sitePath()}><span class="text-2xl font-light leading-none transition-transform duration-300 group-hover:-translate-x-1">←</span><span>返回文章列表</span></a><span class="h-px flex-1 bg-slate-200/80"></span></div><div class="mt-10"><PostMeta publishedAt={post.publishedAt} categories={post.categories} /><h1 class="mt-4 max-w-3xl text-3xl font-bold tracking-[-.045em] sm:text-4xl">{post.title}</h1>{post.tags.length > 0 && <div class="mt-5 flex flex-wrap gap-2">{post.tags.map((tag) => <TagBadge tag={tag} />)}</div>}<div class="prose-tech mt-10"><Content /></div></div></article>
+  <article class="py-10 sm:py-14">
+    <div class="flex items-center gap-5">
+      <a data-back-link class="group inline-flex shrink-0 items-center gap-3 text-sm font-medium tracking-[-.02em] text-slate-500 transition hover:text-sky-700" href={sitePath()}>
+        <span class="text-2xl font-light leading-none transition-transform duration-300 group-hover:-translate-x-1">←</span>
+        <span>返回文章列表</span>
+      </a>
+      <span class="h-px flex-1 bg-slate-200/80"></span>
+    </div>
+
+    <div class="mt-10">
+      <PostMeta publishedAt={post.publishedAt} categories={post.categories} />
+      <h1 class="mt-4 max-w-3xl text-3xl font-bold tracking-[-.045em] sm:text-4xl">{post.title}</h1>
+      {post.tags.length > 0 && <div class="mt-5 flex flex-wrap gap-2">{post.tags.map((tag) => <TagBadge tag={tag} />)}</div>}
+      <div class="prose-tech mt-10"><Content /></div>
+    </div>
+
+    {(previousPost || nextPost) && (
+      <nav class="mt-14 grid gap-3 border-t border-slate-200/80 pt-7 sm:grid-cols-2" aria-label="相邻文章">
+        {previousPost ? (
+          <a class="group rounded-lg border border-slate-200/80 bg-white/45 px-5 py-4 transition duration-200 hover:border-sky-300 hover:bg-sky-50/70" href={sitePath(`posts/${previousPost.slug}/`)}>
+            <span class="font-mono text-[10px] tracking-[.12em] text-slate-400 transition group-hover:text-sky-600">← 上一篇</span>
+            <span class="mt-2 block text-sm font-medium leading-6 text-slate-700 transition group-hover:text-sky-700">{previousPost.title}</span>
+          </a>
+        ) : <span class="hidden sm:block"></span>}
+        {nextPost && (
+          <a class="group rounded-lg border border-slate-200/80 bg-white/45 px-5 py-4 text-right transition duration-200 hover:border-sky-300 hover:bg-sky-50/70" href={sitePath(`posts/${nextPost.slug}/`)}>
+            <span class="font-mono text-[10px] tracking-[.12em] text-slate-400 transition group-hover:text-sky-600">下一篇 →</span>
+            <span class="mt-2 block text-sm font-medium leading-6 text-slate-700 transition group-hover:text-sky-700">{nextPost.title}</span>
+          </a>
+        )}
+      </nav>
+    )}
+  </article>
 </BaseLayout>
 {post.math && <><script is:inline>
   window.MathJax = {
