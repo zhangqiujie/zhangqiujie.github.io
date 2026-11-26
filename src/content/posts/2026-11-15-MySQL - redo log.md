@@ -8,6 +8,8 @@ tags: [MySQL, 学习笔记]
 pin: false
 ---
 
+本文以 MySQL 8.4 的 InnoDB 实现为例。
+
 ## 一、为什么需要 redo log
 
 InnoDB 先在 Buffer Pool 中修改数据页，修改后的页称为**脏页**。如果事务提交时必须把涉及的所有脏页写入数据文件，提交可能需要多次分散的页写入。InnoDB 使用 **redo log（重做日志）**记录页修改所需的恢复信息，让数据页可以稍后刷盘。
@@ -18,7 +20,7 @@ InnoDB 先在 Buffer Pool 中修改数据页，修改后的页称为**脏页**�
 
 redo 记录的是 InnoDB 数据页修改的重做信息，并非原始 SQL 语句。理解“可以定位受影响的页并重做相关修改”即可；具体 `MLOG_*` 类型、数字编号和内部字段布局属于版本相关的实现细节。
 
-InnoDB 使用 **LSN** 标识日志进度，通过 **checkpoint** 标记已完成必要数据页刷盘的进度，使较早的日志空间能够复用。理解它们与崩溃恢复范围、日志空间压力的关系即可，无须记忆内部编码格式。
+InnoDB 用 **LSN（Log Sequence Number，日志序列号）**表示 redo 日志流中的字节位置。**Checkpoint** 记录已完成必要数据页刷盘的进度，使较早的日志空间能够复用。
 
 ## 三、Mini-Transaction 与日志组
 
@@ -28,28 +30,46 @@ mtr 的“原子”是底层页修改在恢复时作为整体处理，**不等�
 
 ## 四、redo 的写入路径
 
-页修改产生的 redo 先由 mtr 在内部缓冲区收集，再写入内存中的 **log buffer**。log buffer 按 **redo log block** 组织日志数据；log block 是日志格式单元，不是数据页。随后后台日志线程将缓冲内容写入日志文件并刷盘。事务提交时是否等待相应 LSN 的 redo 刷盘，取决于 `innodb_flush_log_at_trx_commit` 等配置；日志进入 log buffer 不代表已经持久化。
+页修改产生的 redo 先由 mtr 在内部缓冲区收集，再写入内存中的 **log buffer**。log buffer 按 **redo log block** 组织日志数据。默认情况下，后台日志线程将缓冲内容写入日志文件，再将已写出的内容刷盘。事务提交要等到哪一步，由 `innodb_flush_log_at_trx_commit` 决定。
+
+### LSN 与写入进度
+
+每个 log block 占 512 字节。LSN 按字节推进，跨块时还会计入上一块的 4 字节块尾和下一块的 12 字节块头。源码中的 SN 只给实际日志记录的字节编号。
+
+| MySQL 8.4 源码 | `SHOW ENGINE INNODB STATUS` 的 `LOG` 段 | 对应进度 |
+| --- | --- | --- |
+| `log_buffer_ready_for_write_lsn()` | `Log buffer completed up to` | log buffer 中已连续填充到的 LSN |
+| `write_lsn` | `Log written up to` | 已写入 redo 日志文件 |
+| `flushed_to_disk_lsn` | `Log flushed up to` | 已刷盘的 LSN 边界 |
+
+刷盘进度 ≤ 文件写入进度 ≤ 缓冲区连续写入进度。前两项的差反映待刷盘的日志跨度，后两项的差反映待写出到文件的日志跨度。排查提交变慢时，可以连续观察这两个差值，判断积压出现在写出还是刷盘阶段。
+
+### 从 LSN 定位日志文件
+
+可以用 `performance_schema.innodb_redo_log_files` 的 `[START_LSN, END_LSN)` 范围定位活动文件。文件内的字节偏移为 `文件头大小 + (LSN - START_LSN)`，其中每个文件的文件头单独计入偏移。
 
 ### 哪些情况会推动 redo 写出或刷盘
 
 `log buffer` 是内存缓冲区，日志**写入日志文件**与**刷盘持久化**是两步，不能把二者都称为“刷盘”。常见时机包括：
 
 - `log buffer` 空间不足时，产生 redo 的线程需要等待缓冲空间释放，日志可能提前写出；这不等于每次都会执行磁盘同步。
-- 事务提交时，是否等待所需 redo 刷盘由 `innodb_flush_log_at_trx_commit` 决定；值为 `1` 时每次提交都写入并刷盘，具体取舍见下节。
+- 事务提交时，`innodb_flush_log_at_trx_commit` 控制对写出和刷盘的等待，具体策略见下节。
 - 脏数据页写盘前，必须先保证该页最新修改对应的 redo 已刷盘，这是 WAL 的要求。
 - 后台线程也会按 `innodb_flush_log_at_timeout` 指定的周期写入并刷盘；默认周期约为 1 秒，不是严格的最大间隔。
 
 ## 五、提交时日志何时刷盘
 
-`innodb_flush_log_at_trx_commit` 决定事务提交时 redo 的写入和刷盘策略：
+`innodb_flush_log_at_trx_commit` 决定事务提交时需要等待的 redo 进度。
 
-| 值 | 提交时的行为 | 持久性 |
+| 值 | 提交时的行为 | redo 层面的持久性 |
 | --- | --- | --- |
-| `1`（默认） | 每次提交将 redo 写入日志文件并刷盘 | 通常用于要求提交后具备崩溃持久性的场景 |
-| `2` | 每次提交写入日志文件，约每秒刷盘 | 操作系统或机器故障时可能丢失最近已提交的事务 |
-| `0` | 提交时不要求写入日志文件，约每秒写入并刷盘 | mysqld 进程崩溃或机器故障时都可能丢失最近已提交的事务 |
+| `1`（默认） | 等待刷盘进度覆盖本事务所需的 redo | 存储层正确完成刷盘时，已提交事务具备崩溃持久性 |
+| `2` | 等待所需 redo 写入日志文件，后台默认约每秒刷盘 | 仅 mysqld 进程崩溃时，操作系统通常仍保有已写出的 redo。操作系统崩溃或整机掉电可能丢失近期提交 |
+| `0` | 对 redo 的写出和刷盘均无等待要求，后台默认约每秒写入并刷盘 | 仅 mysqld 进程崩溃也可能丢失近期已提交的事务 |
 
-“约每秒”不是严格的最大丢失窗口；调低刷盘频率是在吞吐与持久性之间做取舍。排查“提交成功后数据丢失”的问题时，应先检查这个参数及实际故障类型。若启用 binlog 且要求故障后的事务与复制日志保持持久和一致，还需配合 `sync_binlog=1`。
+在常见的缓冲 I/O 下，**写入日志文件**完成后，redo 仍可能留在操作系统的文件缓存中，突然断电可能使这部分日志丢失。**刷盘**完成表示存储层已确认 redo 持久化。
+
+一次刷盘可以覆盖多个并发事务所需的 redo。对于 `0` 和 `2`，后台周期由 `innodb_flush_log_at_timeout` 控制，实际间隔还会受线程调度和其他 InnoDB 活动影响，数据丢失窗口可能短于或长于配置周期。排查提交成功后数据丢失时，应先检查提交策略和故障类型。若启用 binlog 且要求故障后的事务与复制日志保持持久和一致，还需配合 `sync_binlog=1`。
 
 ## 六、用一笔转账看提交与刷盘
 
@@ -77,6 +97,10 @@ InnoDB 重启后会应用需要的 redo，随后回滚崩溃时尚未提交的�
 
 redo 不能代替备份，也不能单独解决数据页写入一半造成的损坏；InnoDB 的双写机制用于处理这类页写入问题。
 
+## 附注：MySQL 5.7 源码中的缓冲区偏移
+
+MySQL 5.7.44 的 `buf_free` 是当前 log buffer 的下一次追加偏移，`buf_next_to_write` 标记待写出区间的起点，范围为 `[buf_next_to_write, buf_free)`。这两个值的单位是缓冲区内的字节偏移。上文 8.4 的进度表使用的是 redo 日志流中的 LSN。
+
 ## 参考资料
 
 - [MySQL 8.4：InnoDB Redo Log](https://dev.mysql.com/doc/refman/8.4/en/innodb-redo-log.html)
@@ -85,14 +109,20 @@ redo 不能代替备份，也不能单独解决数据页写入一半造成的损
 - [MySQL 8.4：Binary Log](https://dev.mysql.com/doc/refman/8.4/en/binary-log.html)
 - [MySQL 8.4：Doublewrite Buffer](https://dev.mysql.com/doc/refman/8.4/en/innodb-doublewrite-buffer.html)
 - [MySQL 8.4 源码文档：InnoDB redo log](https://dev.mysql.com/doc/dev/mysql-server/8.4.11/PAGE_INNODB_REDO_LOG.html)
+- [MySQL 8.4 源码文档：redo 日志格式](https://dev.mysql.com/doc/dev/mysql-server/8.4.11/PAGE_INNODB_REDO_LOG_FORMAT.html)
+- [MySQL 8.4 源码：LSN 到文件内偏移的计算](https://raw.githubusercontent.com/mysql/mysql-server/mysql-8.4.11/storage/innobase/include/log0types.h)
+- [MySQL 8.4：InnoDB 标准监控输出](https://dev.mysql.com/doc/refman/8.4/en/innodb-standard-monitor.html)
+- [MySQL 8.4 源码：redo 监控输出](https://raw.githubusercontent.com/mysql/mysql-server/mysql-8.4.11/storage/innobase/log/log0log.cc)
 - [MySQL 8.4 源码文档：mtr 日志类型](https://dev.mysql.com/doc/dev/mysql-server/8.4.11/mtr0types_8h.html)
 - [MySQL 8.4：术语表](https://dev.mysql.com/doc/refman/8.4/en/glossary.html)
+- [MySQL 5.7.44 源码：redo 日志字段](https://raw.githubusercontent.com/mysql/mysql-server/mysql-5.7.44/storage/innobase/include/log0log.h)
 
 ## 面试考点与案例
 
 1. **转账事务在 `innodb_flush_log_at_trx_commit=1` 下收到 `COMMIT` 成功，能断定两个账户的数据页都已写盘吗？** 不能。提交保证所需 redo 已刷盘；数据页可能此前已刷，也可能仍为脏页，之后再刷。崩溃时可根据 redo 恢复未落盘的修改。
-2. **`innodb_flush_log_at_trx_commit` 设为 `0`、`1`、`2`，故障时有什么差别？** `1` 每次提交写入并刷盘；`2` 每次提交写入日志文件但约每秒刷盘，操作系统或机器故障可能丢失近期提交；`0` 约每秒才写入并刷盘，mysqld 进程故障也可能丢失。间隔并非严格一秒。
+2. **`innodb_flush_log_at_trx_commit` 设为 `0`、`1`、`2` 时，提交分别要等什么？发生故障时有什么区别？** `1` 等所需 redo 刷盘，依赖存储层正确完成刷盘。`2` 等所需 redo 写入日志文件，操作系统崩溃或整机掉电可能丢失近期提交。`0` 对 redo 的写出和刷盘均无等待要求，仅 mysqld 进程崩溃也可能丢失近期提交。`0` 和 `2` 的后台周期默认约一秒，实际间隔会波动。
 3. **事务还没 `COMMIT`，redo 可能已经写入日志文件甚至刷盘吗？为什么？** 会。log buffer 空间压力可能推动日志提前写出；后台周期写刷，脏页刷盘前也须先让对应 redo 持久化。写入文件不等于刷盘，redo 已持久化也不等于用户事务已提交。
-4. **mtr 的日志组完整恢复，是否意味着对应的用户事务已提交？** 不意味着。恢复时只应用完整的 mtr 日志组，避免 B+ 树多页修改只恢复一部分；一个用户事务可包含多个 mtr。即使提交前 redo 或数据页已经写盘，未提交事务的影响随后仍需回滚。
-5. **redo、undo、binlog 分别解决什么问题？** redo 支持 InnoDB 本机崩溃恢复；undo 支持回滚与多版本读取；binlog 主要用于复制及备份后的按时间点恢复。
-6. **磁盘数据页只写了一半，已有 redo 就足够修复吗？** 不足。redo 不能单独处理损坏的半页，InnoDB 还依靠双写机制处理这类页写入故障。
+4. **MySQL 8.4 的 `COMMIT` 变慢，怎么判断 redo 积压在写出还是刷盘阶段？** 连续查看 `SHOW ENGINE INNODB STATUS` 的 `LOG` 段。`Log buffer completed up to` 与 `Log written up to` 的差值扩大，表示待写出的日志在积累。`Log written up to` 与 `Log flushed up to` 的差值扩大，表示待刷盘的日志在积累。若提交配置为 `1`，可以结合存储 I/O 延迟验证刷盘滞后是否拉长了提交等待。
+5. **mtr 的日志组完整恢复，是否意味着对应的用户事务已提交？** 不意味着。恢复时只应用完整的 mtr 日志组，避免 B+ 树多页修改只恢复一部分；一个用户事务可包含多个 mtr。即使提交前 redo 或数据页已经写盘，未提交事务的影响随后仍需回滚。
+6. **redo、undo、binlog 分别解决什么问题？** redo 支持 InnoDB 本机崩溃恢复；undo 支持回滚与多版本读取；binlog 主要用于复制及备份后的按时间点恢复。
+7. **磁盘数据页只写了一半，已有 redo 就足够修复吗？** 不足。redo 不能单独处理损坏的半页，InnoDB 还依靠双写机制处理这类页写入故障。
